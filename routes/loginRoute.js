@@ -28,7 +28,7 @@ async function waitForLoginDetails(data, response, request) {
 }
 
 router.post('/logout', (request, response) => {
-    request.session.destroy();
+    request.session = null;
 })
 
 module.exports = router
