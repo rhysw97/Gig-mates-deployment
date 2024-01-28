@@ -65,9 +65,9 @@ app.use('/images', express.static('public/uploads'));
 
 // Handle any other routes with React app's index.html
 //UNCOMMENT TO SERVE FRONTEND VIA PORT 5000 
-/*app.get('*', (req, res) => {
+app.get('*', (req, res) => {
   res.sendFile(path.resolve(__dirname, 'build', 'index.html'));
-});*/
+});
 
 const port = process.env.PORT || 3001;
 app.listen(port, () => {
