@@ -120,6 +120,7 @@ class User {
             if(!userData.profilePicture) {
                 userData.profilePicture = 'default.png'
             }
+            userData.password = null
             response.send(userData)
         }
     }
