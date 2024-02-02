@@ -13,6 +13,20 @@ const storage = multer.diskStorage({
   });
 
 router.post('/edit', multer({ storage }).single('file'), (request, response) => {
+  console.log('request', request.body)
+  const data = {
+    username: request.session.username,
+    name: request.body.name,
+    about: request.body.bio,
+    genres: request.body.genres.split(','),
+    artists: request.body.artists.split(',')
+  }
+
+  console.log('data', data)
+  request.app.locals.user.updateProfile(data)
+})
+
+router.post('/editWithFile', multer({ storage }).single('file'), (request, response) => {
   console.log(request.body)
   const data = {
     username: request.session.username,
@@ -24,7 +38,7 @@ router.post('/edit', multer({ storage }).single('file'), (request, response) => 
   }
 
   console.log('data', data)
-  request.app.locals.user.updateProfile(data, response)
+  request.app.locals.user.updateProfile(data)
 })
 
 router.post('/remove-genre', (request, response) => {
@@ -57,9 +71,11 @@ router.post('/update-password', (request, response) => {
 
 //route for getting a users profile picture (contains url param for name)
 router.get('/profile-pic', async (request, response) => {
-console.log(request.session.username)
-  const pic = await request.app.locals.user.getProfilePicture(request.session.username, response) 
-  console.log(pic)
+  await request.app.locals.user.getProfilePicture(request.session.username, response) 
 }), 
+
+router.post('/user-pic', async(request, response) => {
+  await request.app.locals.user.getProfilePicture(request.body.username, response) 
+})
 
 module.exports = router

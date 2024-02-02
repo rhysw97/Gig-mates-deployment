@@ -2,6 +2,7 @@
 const Mongoose = require('mongoose')
 const {Schema, model} = Mongoose
 
+//creates new schema for posts indicating the data fields and data types a post should contain
 const postSchema=new Schema({
     postedBy: String,
     profilePicture: String,
@@ -24,12 +25,13 @@ const postSchema=new Schema({
     ]
 })
 
-const Post = model('Posts', postSchema)
+const Post = model('Posts', postSchema) //creates a model of the schema called posts
 
+//function to add a new post with 1 parameter allowing passing in of post data
 function addNewPost(postData) {
+    //stores data passed into myPost and sets up other fields that may be used 
     let myPost = {
         postedBy: postData.username,
-        profilePicture: postData.profilePicture,
         message: postData.post,
         likes: 0,
         time: Date.now(),
@@ -38,17 +40,19 @@ function addNewPost(postData) {
         eventId: ''
     }
 
-    console.log(myPost)
-    Post.create(myPost)
+    //creates a a new post collection called Posts containing myPost.
+    //if collection already exists then it adds the new post into that collection
+    Post.create(myPost) 
         .catch(err=>{
             console.log("Error: "+err)
         })
 }
 
+//function to get posts from with a parameter indicating the amount of posts wanted
 async function getPosts(n=3) {
     let data = []
     await Post.find({})
-        .sort({'time': -1})
+        .sort({'time': -1}) //sorts the posts in time added order
         .limit(n)
         .exec()
         .then(mongoData=>{
@@ -60,6 +64,7 @@ async function getPosts(n=3) {
     return data;
 }
 
+//function to get a single post by its id and return the post data
 async function getPost(postid){
     let data=null;
     await Post.findById(postid)
@@ -73,6 +78,7 @@ async function getPost(postid){
     return data;
 }
 
+//function to find a post by id and increment the likes by one and add the user who liked it to liked by array
 async function likePost(likedPostID, likedByUser){
     await Post.findByIdAndUpdate(likedPostID, {
         $inc:{likes: 1},
@@ -84,6 +90,7 @@ async function likePost(likedPostID, likedByUser){
         })
 }
 
+//function to get post by id and remove 1 from likes and then remove the user who unliked it from array
 async function unlikePost(likedPostID, likedByUser){
     await Post.findByIdAndUpdate(likedPostID, {
         $inc:{likes: -1},
@@ -96,26 +103,23 @@ async function unlikePost(likedPostID, likedByUser){
         })
 }
 
+//function for user to comment on a post by finding the post by it's id and adding the comment to it's comment array
 async function commentOnPost(commentedPostID, commentByUser, comment, request){
-    console.log("COMMENT!!!!!!")
     let found;
-    const pic = await request.app.locals.user.returnProfilePicture(commentByUser)
-    console.log('Me', pic)
     let newComment={
         user: commentByUser,
         message: comment,
         likes: 0,
         time: Date.now(),
-        profilePicture: pic,
     }
-    console.log('COMMENT', commentedPostID)
+    //updates post in database with new comment
     await Post.findByIdAndUpdate(commentedPostID,{$push: {comments: newComment}}).exec()
         .then(foundData=>found=foundData)
 }
 
+//function to get the comments of a post by finding it by it's Id and returning the posts data (same as getPost really so could be deleted)
 async function viewComments(postId){
     let data=null;
-    console.log('postid', postId)
     await Post.findById(postId)
         .exec()
         .then(mongoData=>{
@@ -127,60 +131,68 @@ async function viewComments(postId){
     return data;
 }
 
+//function to edit post in the database
 async function editPost(postId, message, currentUser, response) { 
+    //checks the user logged in was the one who posted the post
     if(await checkUserIsPoster(postId, currentUser)) {
         let found
-        console.log('ITS HERE', postId)
+        //if user did post find the post by it's Id and then update the message with the new message
         await Post.findByIdAndUpdate(postId, {message: message}).exec()
         .then(foundData=>found=foundData)
     } else {
+        //if user didn't post send not authorized error code
         response.sendStatus(403)
     }   
 }
 
-//function to check that a user 
+//function to check that a user is the poster takes the post id and the current users name
 async function checkUserIsPoster(postId, currentUser) {
     let result 
     let data
+    //finds post in database by id passed in
     await Post.findById(postId)
         .exec()
         .then(mongoData=>{
-            data=mongoData;
-            console.log(data.postedBy)
+            data=mongoData
+            //turnery statement to check if the current user matches the postedBy field in database and stores in result whether this is true or false
             result = data.postedBy === currentUser? true : false
-            console.log('Result', result)
             
         })
         .catch(err=>{
             console.log('Error:'+err)
             result = 400
         });
-    return result
+
+    //returns true or false based on whether user was one who posted the post
+    return result 
 }
 
+//function to delete a post
 async function deletePost(postId, currentUser, response) {
-    const isUserPoster = await checkUserIsPoster(postId, currentUser) 
+    const isUserPoster = await checkUserIsPoster(postId, currentUser) //checks if user created the post
     if(isUserPoster === true) {
         await Post.findByIdAndDelete(postId)
         console.log('Deleted')
     } else if (isUserPoster === false) {
+        //if they didn't send not authorized code
         response.sendStatus(403)
     } else {
-        response.sendStatus(isUserPoster)
+        //send that the user is the poster
+        response.send(isUserPoster)
     }
 }
 
+//function to add a new event post to the post collection. similar to add new post
 async function addNewEventPost(postData) {
 
     let myPost = {
         postedBy: postData.username,
-        profilePicture: postData.profilePicture,
-        message: postData.post,
+        message: postData.message,
         likes: 0,
         time: Date.now(),
         likedBy: [],
         comments: [],
-        eventId: postData.eventId
+        eventId: postData.eventId //only difference is it adds the events id to eventId field
     }
 
     console.log(myPost)
@@ -191,6 +203,7 @@ async function addNewEventPost(postData) {
 
 }
 
+//gets only posts with eventId field matching event id
 async function getEventPosts(n=3, eventId) {
     let data = []
     await Post.find({})
@@ -214,6 +227,7 @@ async function getEventPosts(n=3, eventId) {
     return eventPosts;
 }
 
+//exports functions in this file so they can be imported into other files
 module.exports = {
     addNewPost,
     getPosts,

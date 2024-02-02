@@ -9,7 +9,7 @@ router.post('/', (request, response) => {
 
 //waits for login details and checks they have been accepted. Sends True or false back to user
 async function waitForLoginDetails(data, response, request) {
-    console.log('login data', data)
+    //
     const currentUser = request.app.locals.user 
     const loginData = await currentUser.checkLoginDetails(data);
     console.log(loginData)
@@ -28,7 +28,17 @@ async function waitForLoginDetails(data, response, request) {
 }
 
 router.post('/logout', (request, response) => {
-    request.session = null;
+    request.session.destroy()
+    console.log('Yo', request.session)
+})
+
+router.get('/checkLoggedIn', (request, response) => {
+    if(request.session.username) {
+        console.log(request.session)
+        response.send({username: request.session.username})
+    } else {
+        response.send({username: false})
+    }
 })
 
 module.exports = router

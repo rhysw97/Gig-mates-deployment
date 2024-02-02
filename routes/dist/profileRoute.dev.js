@@ -21,6 +21,20 @@ var storage = multer.diskStorage({
 router.post('/edit', multer({
   storage: storage
 }).single('file'), function (request, response) {
+  console.log('request', request.body);
+  var data = {
+    username: request.session.username,
+    name: request.body.name,
+    about: request.body.bio,
+    genres: request.body.genres.split(','),
+    artists: request.body.artists.split(',')
+  };
+  console.log('data', data);
+  request.app.locals.user.updateProfile(data);
+});
+router.post('/editWithFile', multer({
+  storage: storage
+}).single('file'), function (request, response) {
   console.log(request.body);
   var data = {
     username: request.session.username,
@@ -31,7 +45,7 @@ router.post('/edit', multer({
     artists: request.body.artists.split(',')
   };
   console.log('data', data);
-  request.app.locals.user.updateProfile(data, response);
+  request.app.locals.user.updateProfile(data);
 });
 router.post('/remove-genre', function (request, response) {
   removeGenre();
@@ -74,13 +88,33 @@ router.post('/update-password', function (request, response) {
   request.app.locals.user.updatePassword(request.session.username, request.body.password);
 }); //route for getting a users profile picture (contains url param for name)
 
-router.get('/profile-pic', function (request, response) {
-  console.log(request.query.username);
-  var profilePicture;
+router.get('/profile-pic', function _callee(request, response) {
+  return regeneratorRuntime.async(function _callee$(_context2) {
+    while (1) {
+      switch (_context2.prev = _context2.next) {
+        case 0:
+          _context2.next = 2;
+          return regeneratorRuntime.awrap(request.app.locals.user.getProfilePicture(request.session.username, response));
 
-  if (request.query.username) {
-    profilePicture = request.app.locals.user.getProfilePicture(request.query.username, response);
-  } else {
-    profilePicture = request.app.locals.user.getProfilePicture(request.session.username, response);
-  }
-}), module.exports = router;
+        case 2:
+        case "end":
+          return _context2.stop();
+      }
+    }
+  });
+}), router.post('/user-pic', function _callee2(request, response) {
+  return regeneratorRuntime.async(function _callee2$(_context3) {
+    while (1) {
+      switch (_context3.prev = _context3.next) {
+        case 0:
+          _context3.next = 2;
+          return regeneratorRuntime.awrap(request.app.locals.user.getProfilePicture(request.body.username, response));
+
+        case 2:
+        case "end":
+          return _context3.stop();
+      }
+    }
+  });
+});
+module.exports = router;

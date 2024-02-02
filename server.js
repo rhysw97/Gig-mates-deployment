@@ -1,15 +1,13 @@
 const express = require('express');
 const cors = require('cors');
-const session = require('cookie-session');
+const session = require('express-session');
+const MongoDBStore = require('connect-mongodb-session')(session);
 const path = require('path');
-const { addNewPost, getPosts } = require('./components/post.js');
 const { User } = require('./components/user.js');
-const multer = require('multer');
-
+const dbUri = "mongodb+srv://rhysw97:7jv51e8bzb4jg0xP@cluster0.jx0jttw.mongodb.net/?retryWrites=true&w=majority"
 const mongoose = require('mongoose');
 const currentUser = new User();
-
-mongoose.connect("mongodb+srv://rhysw97:7jv51e8bzb4jg0xP@cluster0.jx0jttw.mongodb.net/?retryWrites=true&w=majority");
+mongoose.connect(dbUri);
 
 const app = express();
 const dotenv = require("dotenv");
@@ -33,11 +31,18 @@ app.use(cors({
 
 app.use(express.json());
 
+//sets up new store for sessions so I can store them in MongoDB Database
+const store = new MongoDBStore({
+  uri: dbUri,
+  collection: 'Sessions'
+})
+
 // cookie sessions
 app.use(session({
   secret: process.env.SESSION_SECRET,
   saveUninitialized: true,
   resave: false,
+  store: store, //specifies store that I want to store sessions in
   cookie: {
     httpOnly: true,
     maxAge: parseInt(process.env.SESSION_MAX_AGE),
