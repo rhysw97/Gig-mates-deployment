@@ -24,7 +24,7 @@ const profileRoute = require('./routes/profileRoute');
 
 // cors set up to allow front end access
 app.use(cors({
-  origin: "https://gig-matesd.onrender.com/",
+  origin: "http://localhost:3000",
   methods: ["POST", "PUT", "GET", "OPTIONS", "HEAD"],
   credentials: true,
 }));
