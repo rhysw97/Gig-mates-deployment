@@ -13,6 +13,7 @@ async function createUser(response, request, data) {
     if(!isInDatabase.email && !isInDatabase.username) {
         request.session.username = data.username
     }
+    console.log(isInDatabase)
     response.send(JSON.stringify(isInDatabase))
 }
 
