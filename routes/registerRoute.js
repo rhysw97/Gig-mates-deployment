@@ -13,7 +13,7 @@ async function createUser(response, request, data) {
     if(!isInDatabase.email && !isInDatabase.username) {
         request.session.username = data.username
     }
-    response.send(JSON.stringify(checks))
+    response.send(JSON.stringify(isInDatabase))
 }
 
 module.exports = router
